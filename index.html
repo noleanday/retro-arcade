@@ -1,0 +1,966 @@
+
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RETRO ARCADE 88</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #08001a;
+    color: #00ff9d;
+    font-family: 'Press Start 2P', monospace;
+    overflow-x: hidden;
+}
+
+/* CRT SCANLINES */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(255,255,255,0.025),
+        rgba(255,255,255,0.025) 1px,
+        transparent 1px,
+        transparent 4px
+    );
+}
+
+/* HEADER */
+
+header {
+    text-align: center;
+    padding: 35px 15px;
+    border-bottom: 4px solid #ff00ff;
+    background: #11002b;
+    box-shadow: 0 0 30px #ff00ff;
+}
+
+.logo {
+    font-size: clamp(25px, 6vw, 55px);
+    color: #ff00ff;
+    text-shadow:
+        4px 4px #00ffff,
+        0 0 20px #ff00ff;
+    animation: glitch 1.5s infinite;
+}
+
+.subtitle {
+    margin-top: 20px;
+    color: #ffff00;
+    font-size: 12px;
+}
+
+/* NAV */
+
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 15px;
+    background: #05000e;
+    border-bottom: 2px solid #00ffff;
+}
+
+nav button {
+    font-family: inherit;
+    background: #16002f;
+    color: #00ffff;
+    border: 2px solid #00ffff;
+    padding: 12px 16px;
+    cursor: pointer;
+}
+
+nav button:hover {
+    background: #00ffff;
+    color: #000;
+    box-shadow: 0 0 20px #00ffff;
+}
+
+/* MAIN */
+
+main {
+    max-width: 1100px;
+    margin: auto;
+    padding: 30px 15px;
+}
+
+.panel {
+    background: #0d0020;
+    border: 3px solid #00ff9d;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 0 20px #00ff9d55;
+}
+
+h2 {
+    color: #ffff00;
+    text-shadow: 0 0 10px #ffff00;
+}
+
+/* PLAYER */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.stat {
+    border: 2px solid #ff00ff;
+    padding: 20px;
+    text-align: center;
+    background: #17002d;
+}
+
+.stat span {
+    display: block;
+    margin-top: 12px;
+    color: #00ffff;
+    font-size: 20px;
+}
+
+/* GAMES */
+
+.games {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.game {
+    border: 3px solid #ff00ff;
+    padding: 25px;
+    text-align: center;
+    background: #12001f;
+    transition: .2s;
+}
+
+.game:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 25px #ff00ff;
+}
+
+.game-icon {
+    font-size: 55px;
+    margin-bottom: 15px;
+}
+
+.play {
+    margin-top: 20px;
+    padding: 12px;
+    font-family: inherit;
+    background: #ff00ff;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.play:hover {
+    background: #00ffff;
+    color: black;
+}
+
+/* GAME SCREEN */
+
+#gameScreen {
+    display: none;
+}
+
+#snakeCanvas {
+    display: block;
+    width: min(500px, 100%);
+    margin: 20px auto;
+    border: 4px solid #00ff00;
+    background: #000;
+    image-rendering: pixelated;
+}
+
+.gameControls {
+    text-align: center;
+}
+
+.gameControls button {
+    font-family: inherit;
+    padding: 12px;
+    margin: 5px;
+    background: #00ff00;
+    border: none;
+    cursor: pointer;
+}
+
+/* CLICKER */
+
+#clickButton {
+    display: block;
+    margin: 30px auto;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 8px solid #ffff00;
+    background: #ff00ff;
+    color: white;
+    font-family: inherit;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 0 40px #ff00ff;
+}
+
+#clickButton:active {
+    transform: scale(.9);
+}
+
+/* FOOTER */
+
+footer {
+    text-align: center;
+    padding: 30px;
+    border-top: 3px solid #ff00ff;
+    color: #777;
+    font-size: 10px;
+}
+
+/* GLITCH */
+
+@keyframes glitch {
+    0%, 90%, 100% {
+        transform: translate(0);
+    }
+
+    92% {
+        transform: translate(3px, -2px);
+    }
+
+    94% {
+        transform: translate(-3px, 2px);
+    }
+
+    96% {
+        transform: translate(2px, 1px);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="logo">
+        RETRO ARCADE 88
+    </div>
+
+    <div class="subtitle">
+        ★ INSERT COIN TO PLAY ★
+    </div>
+
+</header>
+
+<nav>
+
+    <button onclick="showSection('home')">
+        HOME
+    </button>
+
+    <button onclick="showSection('games')">
+        GAMES
+    </button>
+
+    <button onclick="showSection('player')">
+        PLAYER
+    </button>
+
+</nav>
+
+<main>
+
+<!-- HOME -->
+
+<section id="home">
+
+    <div class="panel">
+
+        <h2>👾 WELCOME PLAYER</h2>
+
+        <p>
+            Vítej v Retro Arcade 88!
+        </p>
+
+        <p>
+            Vyber si hru a pokus se dostat na první místo.
+        </p>
+
+        <p style="color:#ffff00">
+            HIGH SCORE NEVER DIES.
+        </p>
+
+    </div>
+
+    <div class="panel">
+
+        <h2>🔥 PLAYER STATS</h2>
+
+        <div class="stats">
+
+            <div class="stat">
+                LEVEL
+                <span id="level">1</span>
+            </div>
+
+            <div class="stat">
+                XP
+                <span id="xp">0</span>
+            </div>
+
+            <div class="stat">
+                COINS
+                <span id="coins">0</span>
+            </div>
+
+            <div class="stat">
+                HIGH SCORE
+                <span id="highscore">0</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- GAMES -->
+
+<section id="games" style="display:none">
+
+    <div class="panel">
+
+        <h2>🕹️ ARCADE GAMES</h2>
+
+        <div class="games">
+
+            <div class="game">
+
+                <div class="game-icon">
+                    🐍
+                </div>
+
+                <h3>SNAKE</h3>
+
+                <p>
+                    Old school Snake.
+                </p>
+
+                <button class="play"
+                        onclick="openSnake()">
+                    PLAY
+                </button>
+
+            </div>
+
+
+            <div class="game">
+
+                <div class="game-icon">
+                    🖱️
+                </div>
+
+                <h3>CLICKER</h3>
+
+                <p>
+                    Klikni co nejrychleji.
+                </p>
+
+                <button class="play"
+                        onclick="openClicker()">
+                    PLAY
+                </button>
+
+            </div>
+
+
+            <div class="game">
+
+                <div class="game-icon">
+                    👽
+                </div>
+
+                <h3>COMING SOON</h3>
+
+                <p>
+                    New arcade game.
+                </p>
+
+                <button class="play">
+                    LOCKED
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- PLAYER -->
+
+<section id="player" style="display:none">
+
+    <div class="panel">
+
+        <h2>👤 PLAYER PROFILE</h2>
+
+        <p>
+            PLAYER: <span style="color:#ffff00">
+                GUEST_88
+            </span>
+        </p>
+
+        <p>
+            CLASS: ARCADE LEGEND
+        </p>
+
+        <p>
+            STATUS:
+            <span style="color:#00ff00">
+                ONLINE
+            </span>
+        </p>
+
+        <button class="play" onclick="resetData()">
+            RESET SAVE
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- GAME -->
+
+<section id="gameScreen">
+
+    <div class="panel">
+
+        <h2 id="gameTitle">
+            GAME
+        </h2>
+
+        <div id="gameContent"></div>
+
+        <button class="play"
+                onclick="closeGame()">
+            ← BACK TO ARCADE
+        </button>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<footer>
+
+    RETRO ARCADE 88 © 1988 - 2026<br><br>
+    MADE FOR PIXEL GAMERS 👾
+
+</footer>
+
+
+<script>
+
+/* =========================
+   SAVE SYSTEM
+========================= */
+
+let data = JSON.parse(
+    localStorage.getItem("retroArcade")
+) || {
+
+    xp: 0,
+    coins: 0,
+    highscore: 0
+
+};
+
+function save() {
+
+    localStorage.setItem(
+        "retroArcade",
+        JSON.stringify(data)
+    );
+
+    updateStats();
+}
+
+function updateStats() {
+
+    document.getElementById("xp").textContent =
+        data.xp;
+
+    document.getElementById("coins").textContent =
+        data.coins;
+
+    document.getElementById("highscore").textContent =
+        data.highscore;
+
+    document.getElementById("level").textContent =
+        Math.floor(data.xp / 100) + 1;
+}
+
+updateStats();
+
+
+/* =========================
+   NAVIGATION
+========================= */
+
+function showSection(id) {
+
+    document.getElementById("home").style.display =
+        id === "home" ? "block" : "none";
+
+    document.getElementById("games").style.display =
+        id === "games" ? "block" : "none";
+
+    document.getElementById("player").style.display =
+        id === "player" ? "block" : "none";
+
+    document.getElementById("gameScreen").style.display =
+        "none";
+}
+
+
+/* =========================
+   GAME SYSTEM
+========================= */
+
+function openGame(title) {
+
+    document.getElementById("home").style.display =
+        "none";
+
+    document.getElementById("games").style.display =
+        "none";
+
+    document.getElementById("player").style.display =
+        "none";
+
+    document.getElementById("gameScreen").style.display =
+        "block";
+
+    document.getElementById("gameTitle").textContent =
+        title;
+}
+
+function closeGame() {
+
+    stopSnake();
+
+    document.getElementById("gameScreen").style.display =
+        "none";
+
+    showSection("games");
+}
+
+
+/* =========================
+   CLICKER
+========================= */
+
+let clicks = 0;
+let clickTime = 10;
+let clickTimer = null;
+
+function openClicker() {
+
+    openGame("🖱️ RETRO CLICKER");
+
+    document.getElementById("gameContent").innerHTML = `
+
+        <div style="text-align:center">
+
+            <p>
+                TIME:
+                <span id="clickTime">
+                    10
+                </span>
+            </p>
+
+            <p>
+                CLICKS:
+                <span id="clickCount">
+                    0
+                </span>
+            </p>
+
+            <button id="clickButton">
+                CLICK!
+            </button>
+
+        </div>
+    `;
+
+    clicks = 0;
+    clickTime = 10;
+
+    const btn =
+        document.getElementById("clickButton");
+
+    btn.onclick = function() {
+
+        clicks++;
+
+        document.getElementById(
+            "clickCount"
+        ).textContent = clicks;
+    };
+
+    clickTimer = setInterval(() => {
+
+        clickTime--;
+
+        document.getElementById(
+            "clickTime"
+        ).textContent = clickTime;
+
+        if (clickTime <= 0) {
+
+            clearInterval(clickTimer);
+
+            data.xp += clicks;
+            data.coins += Math.floor(clicks / 5);
+
+            if (clicks > data.highscore) {
+                data.highscore = clicks;
+            }
+
+            save();
+
+            btn.disabled = true;
+            btn.textContent = "TIME!";
+        }
+
+    }, 1000);
+}
+
+
+/* =========================
+   SNAKE
+========================= */
+
+let snakeCanvas;
+let ctx;
+
+let snake;
+let food;
+
+let dx = 20;
+let dy = 0;
+
+let snakeScore = 0;
+let snakeLoop;
+
+
+function openSnake() {
+
+    openGame("🐍 RETRO SNAKE");
+
+    document.getElementById("gameContent").innerHTML = `
+
+        <canvas
+            id="snakeCanvas"
+            width="400"
+            height="400">
+        </canvas>
+
+        <div class="gameControls">
+
+            <p>
+                SCORE:
+                <span id="snakeScore">
+                    0
+                </span>
+            </p>
+
+            <button onclick="startSnake()">
+                START
+            </button>
+
+            <br>
+
+            <button onclick="changeDirection('up')">
+                ▲
+            </button>
+
+            <br>
+
+            <button onclick="changeDirection('left')">
+                ◀
+            </button>
+
+            <button onclick="changeDirection('down')">
+                ▼
+            </button>
+
+            <button onclick="changeDirection('right')">
+                ▶
+            </button>
+
+        </div>
+    `;
+
+    snakeCanvas =
+        document.getElementById("snakeCanvas");
+
+    ctx = snakeCanvas.getContext("2d");
+
+    startSnake();
+}
+
+
+function startSnake() {
+
+    clearInterval(snakeLoop);
+
+    snake = [
+        {x: 200, y: 200},
+        {x: 180, y: 200},
+        {x: 160, y: 200}
+    ];
+
+    dx = 20;
+    dy = 0;
+
+    snakeScore = 0;
+
+    document.getElementById(
+        "snakeScore"
+    ).textContent = 0;
+
+    createFood();
+
+    snakeLoop = setInterval(
+        snakeGame,
+        110
+    );
+}
+
+
+function stopSnake() {
+
+    clearInterval(snakeLoop);
+
+    if (clickTimer) {
+        clearInterval(clickTimer);
+    }
+}
+
+
+function snakeGame() {
+
+    const head = {
+        x: snake[0].x + dx,
+        y: snake[0].y + dy
+    };
+
+    if (
+        head.x < 0 ||
+        head.y < 0 ||
+        head.x >= 400 ||
+        head.y >= 400 ||
+        snake.some(
+            part =>
+                part.x === head.x &&
+                part.y === head.y
+        )
+    ) {
+
+        clearInterval(snakeLoop);
+
+        data.xp += snakeScore * 5;
+        data.coins += snakeScore;
+
+        if (snakeScore > data.highscore) {
+            data.highscore = snakeScore;
+        }
+
+        save();
+
+        alert(
+            "GAME OVER!\nScore: " +
+            snakeScore
+        );
+
+        return;
+    }
+
+    snake.unshift(head);
+
+    if (
+        head.x === food.x &&
+        head.y === food.y
+    ) {
+
+        snakeScore++;
+
+        document.getElementById(
+            "snakeScore"
+        ).textContent = snakeScore;
+
+        createFood();
+
+    } else {
+
+        snake.pop();
+    }
+
+    drawSnake();
+}
+
+
+function drawSnake() {
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 400, 400);
+
+    ctx.fillStyle = "#00ff00";
+
+    snake.forEach(part => {
+
+        ctx.fillRect(
+            part.x,
+            part.y,
+            18,
+            18
+        );
+
+    });
+
+    ctx.fillStyle = "#ff00ff";
+
+    ctx.fillRect(
+        food.x,
+        food.y,
+        18,
+        18
+    );
+}
+
+
+function createFood() {
+
+    food = {
+
+        x:
+            Math.floor(
+                Math.random() * 20
+            ) * 20,
+
+        y:
+            Math.floor(
+                Math.random() * 20
+            ) * 20
+    };
+}
+
+
+function changeDirection(direction) {
+
+    if (
+        direction === "up" &&
+        dy === 0
+    ) {
+        dx = 0;
+        dy = -20;
+    }
+
+    if (
+        direction === "down" &&
+        dy === 0
+    ) {
+        dx = 0;
+        dy = 20;
+    }
+
+    if (
+        direction === "left" &&
+        dx === 0
+    ) {
+        dx = -20;
+        dy = 0;
+    }
+
+    if (
+        direction === "right" &&
+        dx === 0
+    ) {
+        dx = 20;
+        dy = 0;
+    }
+}
+
+
+/* KEYBOARD */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (event.key === "ArrowUp")
+            changeDirection("up");
+
+        if (event.key === "ArrowDown")
+            changeDirection("down");
+
+        if (event.key === "ArrowLeft")
+            changeDirection("left");
+
+        if (event.key === "ArrowRight")
+            changeDirection("right");
+    }
+);
+
+
+/* =========================
+   RESET
+========================= */
+
+function resetData() {
+
+    if (
+        confirm(
+            "Opravdu chceš smazat celý progress?"
+        )
+    ) {
+
+        localStorage.removeItem(
+            "retroArcade"
+        );
+
+        location.reload();
+    }
+}
+
+</script>
+
+</body>
+
